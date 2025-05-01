@@ -1,5 +1,5 @@
 import pytest
-from rpa_automation_tool.src.app import app
+from src.app import app
 import json
 
 

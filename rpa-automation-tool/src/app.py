@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request, render_template
 from functools import wraps
-from utils.project_manager import ProjectManager
+from .utils.project_manager import ProjectManager
 
 app = Flask(__name__)
 project_manager = ProjectManager()
