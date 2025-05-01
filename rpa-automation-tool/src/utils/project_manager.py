@@ -4,8 +4,8 @@ from src.models.test_suite import TestSuite
 from .data import load_projects, save_projects
 from src.core.recorder import Recorder
 from src.models.test import Test # Fixed duplicate import
-from core.player import Player
-from core.runner import Runner
+from src.core.player import Player
+from src.core.runner import Runner
 class ProjectManager:
     def __init__(self):
         self.projects = load_projects()
