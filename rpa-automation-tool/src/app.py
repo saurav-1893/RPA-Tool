@@ -8,7 +8,7 @@ sys.path.append(str(PROJECT_ROOT))
 from flask import Flask, jsonify, request, render_template, abort, logging
 from functools import wraps
 import traceback
-from .utils.project_manager import ProjectManager
+from src.utils.project_manager import ProjectManager
 
 app = Flask(__name__)
 # Configure logging

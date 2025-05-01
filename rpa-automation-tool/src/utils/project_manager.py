@@ -1,8 +1,9 @@
-from models.project import Project
+from src.models.project import Project # Fixed import
+from src.models.test import Test # Fixed import
 from models.test_suite import TestSuite
-from models.test import Test
 from .data import load_projects, save_projects
 from core.recorder import Recorder
+from src.models.test import Test # Fixed duplicate import
 from core.player import Player
 from core.runner import Runner
 class ProjectManager:
