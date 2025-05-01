@@ -26,3 +26,12 @@ class Test:
             'steps': self.steps,
             'result': self.result,
         }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            id=data.get('id', str(uuid.uuid4())),
+            name=data.get('name'),
+            steps=data.get('steps', []),
+            result=data.get('result'),
+        )
