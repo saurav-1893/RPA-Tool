@@ -2,9 +2,9 @@ import uuid
 
 class TestSuite:
     def __init__(self, name, id=None):
- if id is None:
+        if id is None:
             self.id = str(uuid.uuid4())
- else:
+        else:
             self.id = id
         self.name = name
         self.tests = []
