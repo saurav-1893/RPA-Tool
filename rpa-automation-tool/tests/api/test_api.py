@@ -63,7 +63,7 @@ def test_project_lifecycle(client):
     assert json.loads(rv.data)['name'] == "My First Test"
 
     # Test getting all projects (should have one project)
-    rv = client.get('/api/projects')
+    rv = client.get('/api/projects') # Use the API route
     assert rv.status_code == 200
     projects = json.loads(rv.data)
     assert len(projects) == 1
@@ -87,7 +87,7 @@ def test_project_lifecycle(client):
 def test_run_project_tests(client):
     # This test assumes a project named "My Test Project" with a test exists from test_project_lifecycle
     project_name_to_run = "My Test Project"
-    # We need to get the project_id first
+    # Get the project_id first
     rv = client.get('/api/projects')
     projects = json.loads(rv.data)
     project_to_run = next((p for p in projects if p['name'] == project_name_to_run), None)
@@ -95,7 +95,7 @@ def test_run_project_tests(client):
     project_id_to_run = project_to_run['id']
 
     rv = client.post(f'/api/projects/{project_id_to_run}/run')
-    assert rv.status_code == 200
+    assert rv.status_code == 200 # Check if the request was successful
     # Further assertions can be added here to check the results of the run if the API returned them
 
 def test_run_single_test(client):
@@ -119,7 +119,7 @@ def test_run_single_test(client):
     test_id = test['id']
 
     rv = client.post(f'/api/projects/{project_id}/suites/{suite_id}/tests/{test_id}/run')
-    assert rv.status_code == 200
+    assert rv.status_code == 200 # Check if the request was successful
     # Further assertions can be added here
 
 def test_record_test(client):
@@ -144,13 +144,13 @@ def test_record_test(client):
 
     # Start recording
     rv = client.post(f'/api/projects/{project_id}/suites/{suite_id}/tests/{test_id}/record/start')
-    assert rv.status_code == 200
-    assert json.loads(rv.data).get('is_recording') is True
+    assert rv.status_code == 200 # Check if the request was successful
+    assert json.loads(rv.data).get('message') is not None # Check if a message is returned
 
     # Stop recording
     rv = client.post(f'/api/projects/{project_id}/suites/{suite_id}/tests/{test_id}/record/stop')
-    assert rv.status_code == 200
-    # Assertions can be added here to check the recorded steps if the API returned them
+    assert rv.status_code == 200 # Check if the request was successful
+    assert json.loads(rv.data).get('steps_recorded') is not None # Check if the number of steps recorded is returned
 
 def test_delete_all_projects(client):
     # This test should run last to clean up

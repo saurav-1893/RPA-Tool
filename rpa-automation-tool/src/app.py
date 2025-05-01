@@ -1,13 +1,8 @@
 from flask import Flask, jsonify, request
 from flask import render_template
-from core.recorder import Recorder
-from utils.project_manager import ProjectManager, Runner, save_projects
+from utils.project_manager import ProjectManager
 
 app = Flask(__name__)
-
-recorder = Recorder()
-project_manager = ProjectManager()
-projects = project_manager.get_all_projects()
 
 @app.route("/")
 def main():
@@ -20,7 +15,6 @@ def project_detail(project_id):
     if project is None:
         return jsonify({'error': 'Project not found'}), 404
 
-    return render_template('project.html', project=project)
 
 @app.route('/api/projects', methods=['GET'])
 def get_all_projects():
@@ -36,18 +30,12 @@ def create_project():
     new_project = project_manager.create_project(name)
     return jsonify(new_project.__dict__), 201
 
-@app.route('/api/run', methods=['POST'])
-def run_all_tests():
-    runner = Runner()
-    results = runner.run(projects)
-    save_projects(projects)
-    return jsonify(results)
-
 @app.route('/api/projects/<project_id>/suites', methods=['GET'])
 def get_suites(project_id):
     project = project_manager.get_project(project_id)
     if project is None:
-        return jsonify({'error': 'Project not found'}), 404 # Should be 404
+        return jsonify({'error': 'Project not found'}), 404
+    # TODO: test_suites are not in project yet
     return jsonify([s.__dict__ for s in project.test_suites])
 
 @app.route('/api/projects/<project_id>/suites', methods=['POST'])
@@ -68,7 +56,9 @@ def create_suite(project_id):
 def get_tests(project_id, suite_id):
     project = project_manager.get_project(project_id)
     if project is None:
-        return jsonify({'error': 'Project not found'}), 404
+        return jsonify({'error': 'Project not found'}), 404 # Should be 404
+
+    # TODO: test_suites and tests are not in project yet
     return jsonify([t.__dict__ for t in suite.tests])
 
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests', methods=['POST'])
