@@ -1,7 +1,9 @@
 from ..core.recorder import Recorder
+import uuid
 
 class Test:
-    def __init__(self, name, steps=None, result=None):
+    def __init__(self, name, id=None, steps=None, result=None):
+        self.id = id if id is not None else str(uuid.uuid4())
         self.name = name
         self.steps = steps if steps is not None else []
         self.result = result
@@ -16,3 +18,10 @@ class Test:
     def stop_recording(self):
         self.is_recording = False
         self.steps = self.recorder.stop()
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'steps': self.steps,
+            'result': self.result
