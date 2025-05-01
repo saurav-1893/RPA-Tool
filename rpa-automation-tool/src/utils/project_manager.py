@@ -5,14 +5,18 @@ from .data import load_projects, save_projects
 from src.core.recorder import Recorder
 from src.models.test import Test # Fixed duplicate import
 from src.core.player import Player
+import logging
 from src.core.runner import Runner
 class ProjectManager:
     def __init__(self):
         self.projects = load_projects()
 
     def create_project(self, project_name):
+        logging.info(f"Creating project with name: {project_name}")
         project = Project(name=project_name)
         self.projects.append(project)
+        logging.info(f"Project added to self.projects. Project ID: {project.id}")
+        logging.info(f"Project created with ID: {project.id}")
         self.save()
         return project
 
