@@ -24,4 +24,5 @@ class Test:
             'id': self.id,
             'name': self.name,
             'steps': self.steps,
-            'result': self.result
+            'result': self.result,
+        }
