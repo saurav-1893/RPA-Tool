@@ -47,7 +47,15 @@ def validate_suite(f):
 def validate_test(f):
     @wraps(f)
     def decorated_function(project_id, suite_id, test_id, *args, **kwargs):
-        test = project_manager.get_test(project_id, suite_id, test_id)
+        project = project_manager.get_project(project_id)
+        if not project:
+            app.logger.warning(f"Project not found: {project_id}")
+            return jsonify({'error': 'Project not found'}), 404
+
+        suite = next((s for s in project.test_suites if s.id == suite_id), None)
+        if not suite:
+            app.logger.warning(f"Test Suite not found: {suite_id} in project {project_id}")
+            return jsonify({'error': 'Test Suite not found'}), 404
         if not test:
             app.logger.warning(f"Test not found: {test_id} in suite {suite_id}, project {project_id}")
             return jsonify({'error': 'Test not found'}), 404
@@ -223,7 +231,7 @@ def get_tests(project_id, suite_id):
 @validate_suite
 @validate_test
 def get_test(project_id, suite_id, test_id):
-    """Get a specific test."""
+    """Get a specific test from a suite."""
     test = project_manager.get_test(project_id, suite_id, test_id)
     return jsonify(test.to_dict())
 

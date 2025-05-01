@@ -63,16 +63,24 @@ class ProjectManager:
     def save(self):
         save_projects(self.projects)
 
-    def record_test(self, test_id):
-        test = self.get_test(test_id)
+    def get_test_from_suite(self, project_id, suite_id, test_id):
+        project = self.get_project(project_id)
+        if project:
+            test_suite = next((ts for ts in project.test_suites if ts.id == suite_id), None)
+            if test_suite:
+                test = next((t for t in test_suite.tests if t.id == test_id), None)
+                return test
+        return None
+
+    def record_test(self, project_id, suite_id, test_id):
+        test = self.get_test_from_suite(project_id, suite_id, test_id)
         if test:
             recorder = Recorder()
-            test.start_recording(recorder)
+            test.record(recorder)
             return True
         return False
 
-    def stop_recording(self, test_id):
-        test = self.get_test(test_id)
+    def stop_recording(self, project_id, suite_id, test_id):
         if test and test.is_recording:
             recorder = Recorder()
             steps, test = recorder.stop(test)

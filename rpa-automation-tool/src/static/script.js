@@ -181,9 +181,13 @@ class ProjectManager {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name: testName })
-            }).then(() => {
- // Reload the page to see the new test
+                body: JSON.stringify({ name: testName }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error creating test: ${data.error}`);
+                } else {
                     this.renderTests();
                 });
         }
