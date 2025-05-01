@@ -1,2 +1,3 @@
 print('Hello')
-from models.test_suite import TestSuite
+from .test_suite import TestSuite
+from .test import Test
