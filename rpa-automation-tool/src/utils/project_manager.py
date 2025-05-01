@@ -2,7 +2,7 @@ from src.models.project import Project # Fixed import
 from src.models.test import Test # Fixed import
 from src.models.test_suite import TestSuite
 from .data import load_projects, save_projects
-from core.recorder import Recorder
+from src.core.recorder import Recorder
 from src.models.test import Test # Fixed duplicate import
 from core.player import Player
 from core.runner import Runner
