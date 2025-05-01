@@ -1,6 +1,6 @@
 import pytest
-from src.app import app
 import json
+from src.app import app
 
 
 @pytest.fixture(autouse=True)
