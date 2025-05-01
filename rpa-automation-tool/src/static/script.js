@@ -237,16 +237,26 @@ class ProjectManager {
     }
 
  renderProjects(projects) {
-        const projectList = document.getElementById('projectList');
-        if (projectList) {
-            projectList.innerHTML = '';
+        const projectsTableBody = document.querySelector('#projects-table tbody');
+        if (projectsTableBody) {
+            projectsTableBody.innerHTML = '';
  projects.forEach(project => {
-                const projectItem = document.createElement('li');
+                const row = document.createElement('tr');
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = project.name;
+                row.appendChild(nameCell);
+
+                const actionsCell = document.createElement('td');
+                const viewButton = document.createElement('button');
                 const link = document.createElement('a');
-                link.textContent = project.name;
                 link.href = `/project/${project.id}`;
-                projectItem.appendChild(link);
-                projectList.appendChild(projectItem);
+                link.textContent = 'View';
+                viewButton.appendChild(link);
+                actionsCell.appendChild(viewButton);
+                row.appendChild(actionsCell);
+
+                projectsTableBody.appendChild(row);
             });
         }
     }
