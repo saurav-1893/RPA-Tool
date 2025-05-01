@@ -1,6 +1,6 @@
 from src.models.project import Project # Fixed import
 from src.models.test import Test # Fixed import
-from models.test_suite import TestSuite
+from src.models.test_suite import TestSuite
 from .data import load_projects, save_projects
 from core.recorder import Recorder
 from src.models.test import Test # Fixed duplicate import
