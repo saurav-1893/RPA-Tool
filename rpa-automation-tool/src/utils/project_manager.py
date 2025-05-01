@@ -1,7 +1,7 @@
-from rpa_automation_tool.src.models.project import Project
-from rpa_automation_tool.src.models.test_suite import TestSuite
-from rpa_automation_tool.src.models.test import Test
-from rpa_automation_tool.src.utils.data import load_projects, save_projects
+from ..models.project import Project
+from ..models.test_suite import TestSuite
+from ..models.test import Test
+from .data import load_projects, save_projects
 from rpa_automation_tool.src.core.recorder import Recorder
 from rpa_automation_tool.src.core.player import Player
 from rpa_automation_tool.src.core.runner import Runner
