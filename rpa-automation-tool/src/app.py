@@ -5,7 +5,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from flask import Flask, jsonify, request, render_template, abort, logging
+from flask import Flask, jsonify, request, render_template, abort
+import logging
 from functools import wraps
 import traceback
 from src.utils.project_manager import ProjectManager
