@@ -1,0 +1,5 @@
+{
+        "environment_name": "dev",
+        "browser": "chrome",
+        "base_url": "https://example.com"
+    }
