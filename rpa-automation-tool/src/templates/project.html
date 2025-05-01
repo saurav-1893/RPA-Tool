@@ -7,31 +7,33 @@
     <link rel="stylesheet" href="../static/style.css">
     <script src="../static/script.js" defer></script>
 </head>
-<body>
-    <div class="container">
-        <h1 id="project-name">Project Name</h1>
+<body onload="projectManager.loadProjectDetail()">
+    <h1>RPA Tool</h1>
+    <a href="/">Back to Projects</a>
 
-        <div id="add-test-suite-section">
-            <h2>Add Test Suite</h2>
-            <form id="add-test-suite-form">
-                <label for="test-suite-name">Test Suite Name:</label>
-                <input type="text" id="test-suite-name" name="test-suite-name" required>
-                <button type="submit" id="add-test-suite-button">Add Test Suite</button>
-            </form>
-        </div>
+    <h2 id="project-name"></h2>
 
- <div id="test-suites-list-section">
-            <h2>Test Suites</h2>
- <table>
- <thead>
- <tr>
- <th>Test Suite Name</th>
- </tr>
- </thead>
- <tbody id="test-suites-list">
- </tbody>
- </table>
-        </div>
+    <section id="add-test-suite-section">
+        <h2>Add Test Suite</h2>
+        <form id="add-test-suite-form">
+            <label for="test-suite-name">Test Suite Name:</label>
+            <input type="text" id="test-suite-name" name="test-suite-name" required>
+            <button type="submit">Add Test Suite</button>
+        </form>
+    </section>
+
+    <section id="test-suites-list-section">
+        <h2>Test Suites</h2>
+        <p id="no-test-suites-message" style="display: none;">No test suites found for this project.</p>
+        <ul id="test-suites-list">
+        </ul>
+    </section>
+
+    <section id="run-all-tests-section">
+        <button id="run-all-tests-button">Run All Tests</button>
+    </section>
+
+    <script>\n        const projectManager = new ProjectManager('project');\n    </script>
     </div>
 </body>
 </html>

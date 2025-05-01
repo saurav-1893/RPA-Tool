@@ -1,8 +1,10 @@
 // project_manager.js
 
 class ProjectManager {
-    constructor(currentPage) {
- this.currentPage = currentPage;
+ constructor() {
+ this.currentPage = window.location.pathname.split('/')[1] || 'index';
+        this.projectId = window.location.pathname.split('/')[2];
+        this.suiteId = window.location.pathname.split('/')[4];
         this.projects = [];
         this.currentProject = null;
         this.currentTestSuite = null;
@@ -13,19 +15,27 @@ class ProjectManager {
     setupEventListeners() {
  switch (this.currentPage) {
  case 'index':
- const projectForm = document.getElementById('projectForm');
+ const projectForm = document.getElementById('project-form');
  if (projectForm) {
  projectForm.addEventListener('submit', this.handleProjectFormSubmit.bind(this));
  }
  break;
  case 'project':
- const testSuiteForm = document.getElementById('testSuiteForm');
+ const testSuiteForm = document.getElementById('add-test-suite-form');
  if (testSuiteForm) {
  testSuiteForm.addEventListener('submit', this.handleTestSuiteFormSubmit.bind(this));
  }
+ const runAllTestsButton = document.getElementById('run-all-tests-button');
+ if (runAllTestsButton) {
+ runAllTestsButton.addEventListener('click', this.handleRunAllTestsButtonClick.bind(this));
+        }
  break;
  case 'test_suite':
- const testForm = document.getElementById('testForm');
+ const createTestButton = document.getElementById('create-test-button');
+ if(createTestButton) {
+ createTestButton.addEventListener('click', this.handleCreateTestButtonClick.bind(this));
+        }
+ const testForm = document.getElementById('add-test-form');
  if (testForm) {
  testForm.addEventListener('submit', this.handleTestFormSubmit.bind(this));
  }
@@ -33,7 +43,7 @@ class ProjectManager {
  if (recordButton) {
  recordButton.addEventListener('click', this.handleRecordButtonClick.bind(this));
  }
- const playButton = document.getElementById('playButton');
+ const playButton = document.getElementById('play-button');
  if (playButton) {
  playButton.addEventListener('click', this.handlePlayButtonClick.bind(this));
  }
@@ -43,7 +53,7 @@ class ProjectManager {
 
     handleProjectFormSubmit(event) {
         event.preventDefault();
-        const projectName = document.getElementById('projectName').value;
+        const projectName = document.getElementById('project-name-input').value;
  if (projectName.trim()) {
  this.createProject(projectName.trim());
         }
@@ -51,7 +61,7 @@ class ProjectManager {
 
     handleTestSuiteFormSubmit(event) {
         event.preventDefault();
-        const testSuiteName = document.getElementById('testSuiteName').value;
+        const testSuiteName = document.getElementById('test-suite-name').value;
  if (testSuiteName.trim()) {
  this.createTestSuite(testSuiteName.trim());
         }
@@ -59,10 +69,14 @@ class ProjectManager {
 
     handleTestFormSubmit(event) {
         event.preventDefault();
-        const testName = document.getElementById('testName').value;
+        const testName = document.getElementById('test-name-input').value;
  if (testName.trim()) {
  this.createTest(testName.trim());
  }
+    }
+
+    handleCreateTestButtonClick() {
+        document.getElementById('add-test-form').style.display = 'block';
     }
 
     handleRecordButtonClick() {
@@ -77,11 +91,18 @@ class ProjectManager {
     }
 
  handlePlayButtonClick() {
-        // Assuming you have a way to select the current test on the test_suite page
-        this.playTest(this.currentTest.id);
+        const selectedTestId = document.querySelector('#test-table tbody tr.selected')?.dataset.testId;
+        if (selectedTestId) {
+            this.playTest(selectedTestId);
+        } else {
+            alert('Please select a test to play.');
+        }
     }
 
-    handleRunTestButtonClick(testId) {
+    handleRunTestButtonClick(event) {
+        const testId = event.target.closest('tr').dataset.testId;
+        if (!testId) return;
+
  this.runTest(testId);
     }
 
