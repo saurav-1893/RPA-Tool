@@ -80,10 +80,14 @@ class ProjectManager {
     }
 
     handleRecordButtonClick() {
+        const selectedTestId = document.querySelector('#test-table tbody tr.selected')?.dataset.testId;
+ if (!selectedTestId) {
+            alert('Please select a test to record.');
+ return;
+        }
  const recordButton = document.getElementById('recordButton');
  if (recordButton.textContent === 'Start Recording') {
- this.startRecording();
- recordButton.textContent = 'Stop Recording';
+ this.startRecording(selectedTestId);
         } else {
  this.stopRecording();
  recordButton.textContent = 'Start Recording';
@@ -116,9 +120,7 @@ class ProjectManager {
  } else if (this.currentPage === 'project') {
  const projectId = window.location.pathname.split('/')[2];
  this.currentProject = data.find(project => project.id === projectId);
- if (this.currentProject) {
  this.renderTestSuites(this.currentProject.test_suites);
- }
  } else if (this.currentPage === 'test_suite') {
  const projectId = window.location.pathname.split('/')[2];
  const suiteId = window.location.pathname.split('/')[4];
@@ -160,9 +162,14 @@ class ProjectManager {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ name: testSuiteName })
-            }).then(() => {
- // Reload the page to see the new test suite
-                    this.renderTestSuites();
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error creating test suite: ${data.error}`);
+                } else {
+                    this.loadProjects(); // Reload the projects list to see the new test suite
+                }
                 });
         }
     }
@@ -192,23 +199,27 @@ class ProjectManager {
         this.renderTests();
     }
 
-    startRecording() {
+    startRecording(testId) {
  if (this.currentProject && this.currentTestSuite) {
-            fetch(`/api/projects/${this.currentProject.id}/suites/${this.currentTestSuite.id}/tests/${this.currentTest.id}/record/start`, {
+            fetch(`/api/projects/${this.currentProject.id}/suites/${this.currentTestSuite.id}/tests/${testId}/record/start`, {
                 method: 'POST'
             })
  .then(response => response.json())
- .then(data => console.log('Recording started:', data))
+ .then(data => {
+ console.log('Recording started:', data);
+ document.getElementById('recordButton').textContent = 'Stop Recording';
+                })
  .catch(error => console.error('Error starting recording:', error));
  }
     }
 
-    stopRecording() {
+    stopRecording(testId) {
  if (this.currentProject && this.currentTestSuite) {
-            fetch(`/api/projects/${this.currentProject.id}/suites/${this.currentTestSuite.id}/tests/${this.currentTest.id}/record/stop`, {
+            fetch(`/api/projects/${this.currentProject.id}/suites/${this.currentTestSuite.id}/tests/${testId}/record/stop`, {
                 method: 'POST'
             })
  .then(response => response.json())
+ .then(data => this.loadProjects()) // Reload to show recorded steps
  .then(data => {
  console.log('Recording stopped:', data);
  // Optionally, update the test steps in the UI
@@ -282,10 +293,38 @@ class ProjectManager {
     }
 
  renderTests(tests) {
- const testList = document.getElementById('testList');
- if (testList) {
- // You'll need to update this part to render tests appropriately
- }
+        const testTableBody = document.querySelector('#test-table tbody');
+        if (testTableBody) {
+            testTableBody.innerHTML = '';
+ tests.forEach(test => {
+                const row = document.createElement('tr');
+                row.dataset.testId = test.id; // Store test id in data attribute
 
+                const nameCell = document.createElement('td');
+                nameCell.textContent = test.name;
+                row.appendChild(nameCell);
+
+                const stepsCell = document.createElement('td');
+                stepsCell.textContent = test.steps ? test.steps.length : 0; // Display number of steps
+                row.appendChild(stepsCell);
+
+                const resultCell = document.createElement('td');
+                resultCell.textContent = test.result || 'Not Run'; // Display test result
+                row.appendChild(resultCell);
+
+                // Add click event listener to select the test
+                row.addEventListener('click', () => {
+ // Remove 'selected' class from previously selected row
+ const previouslySelected = testTableBody.querySelector('tr.selected');
+ if (previouslySelected) {
+ previouslySelected.classList.remove('selected');
+                    }
+ // Add 'selected' class to the clicked row
+ row.classList.add('selected');
+                });
+
+ testTableBody.appendChild(row);
+            });
+        }
     }
 }
