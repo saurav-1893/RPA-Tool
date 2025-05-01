@@ -8,9 +8,10 @@ class Test:
         self.is_recording = False
         self.recorder = Recorder()
 
-    def record(self):
+    def record(self, steps=None):
         self.is_recording = True
         self.recorder.start_recording(self)
+        self.steps = steps if steps is not None else []
 
     def stop_recording(self):
         self.is_recording = False

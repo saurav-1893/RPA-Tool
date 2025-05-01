@@ -33,6 +33,10 @@ class ProjectManager {
  if (recordButton) {
  recordButton.addEventListener('click', this.handleRecordButtonClick.bind(this));
  }
+ const playButton = document.getElementById('playButton');
+ if (playButton) {
+ playButton.addEventListener('click', this.handlePlayButtonClick.bind(this));
+ }
  break;
         }
     }
@@ -70,6 +74,11 @@ class ProjectManager {
  this.stopRecording();
  recordButton.textContent = 'Start Recording';
         }
+    }
+
+ handlePlayButtonClick() {
+        // Assuming you have a way to select the current test on the test_suite page
+        this.playTest(this.currentTest.id);
     }
 
     handleRunTestButtonClick(testId) {
@@ -182,6 +191,19 @@ class ProjectManager {
  }
     }
 
+    playTest(testId) {
+ if (this.currentProject && this.currentTestSuite) {
+            fetch(`/api/projects/${this.currentProject.id}/suites/${this.currentTestSuite.id}/tests/${testId}/play`, {
+                method: 'POST'
+            })
+ .then(response => response.json())
+ .then(data => {
+ console.log('Test played:', data);
+ // Optionally, provide feedback in the UI about playback status
+ })
+ .catch(error => console.error('Error playing test:', error));
+ }
+    }
     runTest(testId) {
  if (this.currentProject && this.currentTestSuite) {
             fetch(`/api/projects/${this.currentProject.id}/suites/${this.currentTestSuite.id}/tests/${testId}/run`, {

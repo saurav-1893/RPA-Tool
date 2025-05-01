@@ -28,7 +28,7 @@ class Recorder:
             self.mouse_listener.stop()
         if self.keyboard_listener:
             self.keyboard_listener.stop()
-        return self.current_test.steps
+        return self.current_test.steps, self.current_test
 
     def _on_mouse_click(self, x, y, button, pressed):
         if pressed and self.is_recording:
