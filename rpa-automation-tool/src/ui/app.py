@@ -10,7 +10,7 @@ class RPAApp:
         self.create_recording_section()
         self.create_playback_section()
         self.create_status_bar()
-        
+
         self.is_recording = False
         self.recorded_actions = []
 
@@ -54,7 +54,7 @@ class RPAApp:
         self.pause_button.pack(pady=(0, 5))
 
         self.stop_playback_button = tk.Button(playback_frame, text="Stop", command=self.stop_playback, state=tk.DISABLED)
-        self.stop_playback_button.pack(pady=(0, 5)) 
+        self.stop_playback_button.pack(pady=(0, 5))
 
     def create_status_bar(self):
         self.status_var = tk.StringVar()
@@ -91,16 +91,16 @@ class RPAApp:
             action = f"Action {len(self.recorded_actions) + 1}"
             self.recorded_actions.append(action)
             self.actions_listbox.insert(tk.END, action)
-        print("Add action")
-        # TODO: Implement add new action logic 
+            print("Add action")
+        # TODO: Implement add new action logic
 
     def run_recording(self):
- self.status_var.set("Running...")
- self.run_button.config(state=tk.DISABLED)
- self.pause_button.config(state=tk.NORMAL)
- self.stop_playback_button.config(state=tk.NORMAL)
+        self.status_var.set("Running...")
+        self.run_button.config(state=tk.DISABLED)
+        self.pause_button.config(state=tk.NORMAL)
+        self.stop_playback_button.config(state=tk.NORMAL)
         print("Running the last recording...")
-        # TODO: Implement playback logic 
+        # TODO: Implement playback logic
 
     def pause_recording(self):
         self.status_var.set("Paused")
