@@ -1,7 +1,7 @@
 from typing import List
 from src.models.project import Project
 from src.models.test import Test
-from rpa_automation_tool.src.models.step import Step
+from src.models.step import Step
 
 class Runner:
     def run(self, project: Project) -> List[str]:
