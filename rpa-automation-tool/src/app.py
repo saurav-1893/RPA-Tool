@@ -3,6 +3,12 @@ from functools import wraps
 import traceback
 import sys
 import os
+import sys
+    from pathlib import Path
+
+    # Add project root to Python path
+    PROJECT_ROOT = Path(__file__).parent.parent
+    sys.path.append(str(PROJECT_ROOT))
 
 # Fix import issues when running directly
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -1,4 +1,4 @@
-from rpa_automation_tool.src.core.recorder import Recorder
+from ..core.recorder import Recorder
 
 class Test:
     def __init__(self, name, steps=None, result=None):
