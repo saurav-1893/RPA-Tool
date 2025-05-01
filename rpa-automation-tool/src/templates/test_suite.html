@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Suite Management</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<script src="../static/script.js"></script>
+<body>
+    <div class="container">
+        <h1 id="test-suite-name">Test Suite Name</h1>
+
+        <div class="test-management">
+            <h2>Tests</h2>
+            <ul id="test-list">
+                <table id="test-table">
+                    <thead>
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </ul>
+        </div>
+    </div>
+    <script>
+        // You can add JavaScript here to handle button clicks and list updates later
+        // Example:
+        document.getElementById('create-test-button').addEventListener('click', () => {
+            alert("Create Test button clicked!");
+        });
+        document.getElementById('start-recording-button').addEventListener('click', () => {
+            alert("Start Recording button clicked!");
+        });
+        document.getElementById('run-all-tests-button').addEventListener('click', () => {
+            alert("Run All Tests button clicked!");
+        });
+    </script>
+    <div class="buttons">
+        <button id="create-test-button">Create Test</button>
+        <button id="start-recording-button">Start Recording</button>
+        <button id="run-all-tests-button">Run All Tests</button>
+    </div>
+</body>
+</html>

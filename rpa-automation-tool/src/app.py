@@ -1,19 +1,39 @@
 from flask import Flask, jsonify, request
+from flask import render_template
 from models.project import Project
 from models.test import Test
-from models.step import Step
 from models.test_suite import TestSuite
 from utils.data import load_projects, save_projects, projects_data
+from core.recorder import Recorder
 from utils.utils import find_project_by_id, find_suite_by_id, find_test_by_id
+from core.player import Player
 from core.runner import Runner
 
 app = Flask(__name__)
 
 projects = load_projects()
+recorder = Recorder()
 
 @app.route("/")
 def main():
-    return "RPA Automation Tool"
+    return render_template('index.html')
+
+@app.route('/project/<project_id>')
+def project_detail(project_id):
+ project = find_project_by_id(projects, project_id)
+ if project is None:
+ return jsonify({'error': 'Project not found'}), 404
+
+ return render_template('project.html', project=project)
+
+@app.route('/project/<project_id>/suite/<suite_id>')
+def test_suite_detail(project_id, suite_id):
+ project = find_project_by_id(projects, project_id)
+ if project is None:
+ return jsonify({'error': 'Project not found'}), 404
+ suite = find_suite_by_id(project.test_suites, suite_id)
+ return render_template('test_suite.html', suite=suite)
+
 
 @app.route('/api/projects', methods=['GET'])
 def get_all_projects():
@@ -86,11 +106,12 @@ def create_test(project_id, suite_id):
     if not name:
         return jsonify({'error': 'Test name is required'}), 400
 
+
     new_test = Test(name=name)
     suite.tests.append(new_test)
     save_projects(projects)
     return jsonify(new_test.__dict__), 201
-
+ 
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>', methods=['GET'])
 def get_test(project_id, suite_id, test_id):
     project = find_project_by_id(projects, project_id)
@@ -106,7 +127,7 @@ def get_test(project_id, suite_id, test_id):
 
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/record/start', methods=['POST'])
 def start_test_recording(project_id, suite_id, test_id):
- project = find_project_by_id(projects_data, project_id)
+ project = find_project_by_id(projects, project_id)
  if project is None:
  return jsonify({'error': 'Project not found'}), 404
  suite = find_suite_by_id(project.test_suites, suite_id)
@@ -119,13 +140,13 @@ def start_test_recording(project_id, suite_id, test_id):
  if test.is_recording:
  return jsonify({'message': 'Recording already in progress for this test'}), 409
 
- test.start_recording()
- save_projects(projects_data)
+ recorder.start_recording(test)
+ save_projects(projects)
  return jsonify({'message': f'Recording started for test: {test.name}'})
 
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/record/stop', methods=['POST'])
 def stop_test_recording(project_id, suite_id, test_id):
- project = find_project_by_id(projects_data, project_id)
+ project = find_project_by_id(projects, project_id)
  if project is None:
  return jsonify({'error': 'Project not found'}), 404
  suite = find_suite_by_id(project.test_suites, suite_id)
@@ -134,9 +155,27 @@ def stop_test_recording(project_id, suite_id, test_id):
  test = find_test_by_id(suite.tests, test_id)
  if test is None:
  return jsonify({'error': 'Test not found'}), 404
- steps = test.stop_recording()
- save_projects(projects_data)
+ steps = recorder.stop_recording()
+ save_projects(projects)
  return jsonify({'message': f'Recording stopped for test: {test.name}', 'steps_recorded': len(steps)})
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/run', methods=['POST'])
+def run_test(project_id, suite_id, test_id):
+ project = find_project_by_id(projects, project_id)
+ if project is None:
+ return jsonify({'error': 'Project not found'}), 404
+ suite = find_suite_by_id(project.test_suites, suite_id)
+ if suite is None:
+ return jsonify({'error': 'Test Suite not found'}), 404
+ test = find_test_by_id(suite.tests, test_id)
+ if test is None:
+ return jsonify({'error': 'Test not found'}), 404
+
+    player = Player()
+ player.play(test)
+ save_projects(projects) # Assuming playback might update test results
+
+ return jsonify({'message': f'Test {test.name} played successfully'})
+
 
 if __name__ == "__main__":
     app.run(debug=True)

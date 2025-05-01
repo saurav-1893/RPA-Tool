@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Management</title>
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="../static/script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1 id="project-name">Project Name</h1>
+
+        <div id="add-test-suite-section">
+            <h2>Add Test Suite</h2>
+            <form id="add-test-suite-form">
+                <label for="test-suite-name">Test Suite Name:</label>
+                <input type="text" id="test-suite-name" name="test-suite-name" required>
+                <button type="submit" id="add-test-suite-button">Add Test Suite</button>
+            </form>
+        </div>
+
+ <div id="test-suites-list-section">
+            <h2>Test Suites</h2>
+ <table>
+ <thead>
+ <tr>
+ <th>Test Suite Name</th>
+ </tr>
+ </thead>
+ <tbody id="test-suites-list">
+ </tbody>
+ </table>
+        </div>
+    </div>
+</body>
+</html>

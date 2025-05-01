@@ -1,0 +1,77 @@
+/* styles.css */
+
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Project Creation Form */
+#project-creation {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+#project-creation label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#project-creation input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+
+#project-creation button {
+    background-color: #5cb85c;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#project-creation button:hover {
+    background-color: #4cae4c;
+}
+
+/* Project List */
+#project-list {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#project-list h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+#project-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+#project-list li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#project-list li:last-child {
+    border-bottom: none;
+}
