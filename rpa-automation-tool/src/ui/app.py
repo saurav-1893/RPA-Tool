@@ -1,21 +1,23 @@
-print("RPA Automation Tool")
-print("Welcome to the RPA Automation Tool!")
+import tkinter as tk
 
-while True:
-    print("\\nMenu:")
-    print("1) Start recording")
-    print("2) Run last recording")
-    print("3) Exit")
+def on_start_button_click():
+    print("Starting Recording...")
+    # TODO: Implement recording logic
 
-    choice = input("Enter your choice: ")
+def on_run_button_click():
+    print("Running the last recording...")
+    # TODO: Implement playback logic
 
-    if choice == '1':
-        print("starting recording...")
-        # TODO: Implement recording logic
-    elif choice == '2':
-        print("Running the last recording...")
-        # TODO: Implement playback logic
-    elif choice == '3':
-        break
-    else:
-        print("Wrong input")
+root = tk.Tk()
+root.title("RPA Automation Tool")
+
+label = tk.Label(root, text="Welcome to the RPA Tool!")
+label.pack()
+
+start_button = tk.Button(root, text="Start Recording", command=on_start_button_click)
+start_button.pack()
+
+run_button = tk.Button(root, text="Run last Recording", command=on_run_button_click)
+run_button.pack()
+
+root.mainloop()
