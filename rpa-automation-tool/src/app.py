@@ -1,9 +1,6 @@
 from flask import Flask, jsonify, request
 from flask import render_template
 from utils.project_manager import ProjectManager
-
-app = Flask(__name__)
-
 @app.route("/")
 def main():
     projects = project_manager.get_all_projects()
@@ -14,6 +11,7 @@ def project_detail(project_id):
     project = project_manager.get_project(project_id)
     if project is None:
         return jsonify({'error': 'Project not found'}), 404
+    return render_template('project.html', project=project)
 
 
 @app.route('/api/projects', methods=['GET'])
@@ -35,7 +33,7 @@ def get_suites(project_id):
     project = project_manager.get_project(project_id)
     if project is None:
         return jsonify({'error': 'Project not found'}), 404
-    # TODO: test_suites are not in project yet
+
     return jsonify([s.__dict__ for s in project.test_suites])
 
 @app.route('/api/projects/<project_id>/suites', methods=['POST'])
@@ -56,8 +54,13 @@ def create_suite(project_id):
 def get_tests(project_id, suite_id):
     project = project_manager.get_project(project_id)
     if project is None:
-        return jsonify({'error': 'Project not found'}), 404 # Should be 404
+        return jsonify({'error': 'Project not found'}), 404
 
+    suite = next((s for s in project.test_suites if s.id == suite_id), None)
+    if suite is None:
+        return jsonify({'error': 'Test Suite not found'}), 404
+
+    # TODO: test suites and tests are not in project yet
     # TODO: test_suites and tests are not in project yet
     return jsonify([t.__dict__ for t in suite.tests])
 
@@ -77,11 +80,49 @@ def create_test(project_id, suite_id):
  
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>', methods=['GET'])
 def get_test(project_id, suite_id, test_id):
-    # TODO: update to use the project manager
-    project = find_project_by_id(projects, project_id)
-    if project is None:
-        return jsonify({'error': 'Project not found'}), 404
-    suite = find_suite_by_id(project.test_suites, suite_id)
+    test = project_manager.get_test(project_id, suite_id, test_id)
+    if test is None:
+        return jsonify({'error': 'Test not found'}), 404
+    return jsonify(test.__dict__)
+
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/record/start', methods=['POST'])
+def start_test_recording(project_id, suite_id, test_id):
+    test = project_manager.get_test(project_id, suite_id, test_id)
+
+    if test is None:
+        return jsonify({'error': 'Test not found'}), 404
+
+    if test.is_recording:
+        return jsonify({'message': 'Recording already in progress for this test'}), 409
+
+    project_manager.record_test(test_id)
+    return jsonify({'message': f'Recording started for test: {test.name}'})
+
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/record/stop', methods=['POST'])
+def stop_test_recording(project_id, suite_id, test_id):
+    test = project_manager.get_test(project_id, suite_id, test_id)
+
+    if test is None:
+        return jsonify({'error': 'Test not found'}), 404
+
+    if not test.is_recording:
+        return jsonify({'message': 'No recording in progress for this test'}), 409
+
+    test = project_manager.stop_recording(test_id)
+    return jsonify({'message': f'Recording stopped for test: {test.name}', 'steps_recorded': len(test.steps)})
+
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/play', methods=['POST'])
+def play_test(project_id, suite_id, test_id):
+    test = project_manager.get_test(project_id, suite_id, test_id)
+
+    if test is None:
+        return jsonify({'error': 'Test not found'}), 404
+
+    project_manager.play_test(test_id)
+    return jsonify({'message': f'Test {test.name} played successfully'})
+
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/run', methods=['POST'])
+def run_test(project_id, suite_id, test_id):
     if suite is None:
         return jsonify({'error': 'Test Suite not found'}), 404
     test = find_test_by_id(suite.tests, test_id)
@@ -111,14 +152,6 @@ def stop_test_recording(project_id, suite_id, test_id): # Remove recorder.stop_r
  steps = recorder.stop_recording()
  project_manager.save()
  return jsonify({'message': f'Recording stopped for test: {test.name}', 'steps_recorded': len(steps)})
-@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/run', methods=['POST'])
-def run_test(project_id, suite_id, test_id):
- 
- test = project_manager.play_test(project_id, suite_id, test_id)
-
-    player = Player()
- player.play(test)
- project_manager.save() # Assuming playback might update test results
 
  return jsonify({'message': f'Test {test.name} played successfully'})
 
