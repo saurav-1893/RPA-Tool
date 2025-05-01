@@ -1,19 +1,11 @@
-from flask import Flask, jsonify, request
-from flask import render_template
-from utils.project_manager import ProjectManager
+from flask import Flask, jsonify, request, render_template
 from functools import wraps
+from utils.project_manager import ProjectManager
 
 app = Flask(__name__)
 project_manager = ProjectManager()
 
-@app.route('/project/<project_id>')
-def project_detail(project_id):
-    project = project_manager.get_project(project_id)
-    if not project:
-        return jsonify({'error': 'Project not found'}), 404
-    return render_template('project.html', project=project)
-
-# === Helper Decorators ===
+# ================= Helper Decorators =================
 def validate_project(f):
     @wraps(f)
     def decorated_function(project_id, *args, **kwargs):
@@ -22,11 +14,34 @@ def validate_project(f):
         return f(project_id, *args, **kwargs)
     return decorated_function
 
-# === API Routes ===
+def validate_suite(f):
+    @wraps(f)
+    def decorated_function(project_id, suite_id, *args, **kwargs):
+        project = project_manager.get_project(project_id)
+        suite = next((s for s in project.test_suites if s.id == suite_id), None)
+        if not suite:
+            return jsonify({'error': 'Test Suite not found'}), 404
+        return f(project_id, suite_id, *args, **kwargs)
+    return decorated_function
+
+# ================= Frontend Routes =================
+@app.route('/')
+def main():
+    projects = project_manager.get_all_projects()
+    return render_template('index.html', projects=projects)
+
+@app.route('/project/<project_id>')
+def project_detail(project_id):
+    project = project_manager.get_project(project_id)
+    if not project:
+        return jsonify({'error': 'Project not found'}), 404
+    return render_template('project.html', project=project)
+
+# ================= API Routes =================
 @app.route('/api/projects', methods=['GET'])
 def get_all_projects():
     projects = project_manager.get_all_projects()
-    return jsonify([p.to_dict() for p in projects])  # Use serialization method instead of __dict__
+    return jsonify([p.to_dict() for p in projects])
 
 @app.route('/api/projects', methods=['POST'])
 def create_project():
@@ -40,25 +55,9 @@ def create_project():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ============= Helper Decorators =============
-def validate_suite(f):
-    @wraps(f)
-    def decorated_function(project_id, suite_id, *args, **kwargs):
-        project = project_manager.get_project(project_id)
-        suite = next((s for s in project.test_suites if s.id == suite_id), None)
-        if not suite:
-            return jsonify({'error': 'Test Suite not found'}), 404
-        return f(project_id, suite_id, *args, **kwargs)
-    return decorated_function
-
-# ============= Frontend Routes =============
-@app.route('/')
-def main():
-    projects = project_manager.get_all_projects()
-    return render_template('index.html', projects=projects)
-
 @app.route('/api/projects/<project_id>/suites', methods=['GET'])
 @validate_project
+def get_suites(project_id):
     project = project_manager.get_project(project_id)
     return jsonify([s.to_dict() for s in project.test_suites])
 
@@ -77,12 +76,10 @@ def create_suite(project_id):
 
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests', methods=['GET'])
 @validate_project
+@validate_suite
 def get_tests(project_id, suite_id):
     project = project_manager.get_project(project_id)
     suite = next((s for s in project.test_suites if s.id == suite_id), None)
-    if not suite:
-        return jsonify({'error': 'Test Suite not found'}), 404
-
     return jsonify([t.to_dict() for t in suite.tests])
 
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests', methods=['POST'])
@@ -141,7 +138,7 @@ def run_all_tests_in_project(project_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# === Error Handling ===
+# ================= Error Handlers =================
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'Resource not found'}), 404
