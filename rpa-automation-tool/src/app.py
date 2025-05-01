@@ -22,15 +22,6 @@ def validate_project(f):
         return f(project_id, *args, **kwargs)
     return decorated_function
 
-def validate_suite(f):
-        return jsonify({'error': 'Project not found'}), 404
-    return render_template('project.html', project=project)
-
-@app.route('/')
-def main():
-    projects = project_manager.get_all_projects()
-    return render_template('index.html', projects=projects)
-
 # === API Routes ===
 @app.route('/api/projects', methods=['GET'])
 def get_all_projects():
@@ -48,8 +39,26 @@ def create_project():
         return jsonify(new_project.to_dict()), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# ============= Helper Decorators =============
+def validate_suite(f):
+    @wraps(f)
+    def decorated_function(project_id, suite_id, *args, **kwargs):
+        project = project_manager.get_project(project_id)
+        suite = next((s for s in project.test_suites if s.id == suite_id), None)
+        if not suite:
+            return jsonify({'error': 'Test Suite not found'}), 404
+        return f(project_id, suite_id, *args, **kwargs)
+    return decorated_function
+
+# ============= Frontend Routes =============
+@app.route('/')
+def main():
+    projects = project_manager.get_all_projects()
+    return render_template('index.html', projects=projects)
+
+@app.route('/api/projects/<project_id>/suites', methods=['GET'])
 @validate_project
-def get_suites(project_id):
     project = project_manager.get_project(project_id)
     return jsonify([s.to_dict() for s in project.test_suites])
 
