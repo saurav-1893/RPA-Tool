@@ -142,8 +142,13 @@ class ProjectManager {
             body: JSON.stringify({ name: projectName })
         })
             .then(response => response.json())
-            .then(() => {
- window.location.reload();
+            .then(data => {
+                if (data.error) {
+                    alert(`Error creating project: ${data.error}`);
+                } else {
+                    this.loadProjects(); // Reload the projects list
+                    document.getElementById('project-name-input').value = ''; // Clear the input field
+                }
             });
     }
 

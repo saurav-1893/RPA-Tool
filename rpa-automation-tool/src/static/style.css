@@ -41,6 +41,14 @@ h3 {
     margin: 20px auto;
 }
 
+#project-list {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+}
+
 /* Forms */
 form {
     display: block;
