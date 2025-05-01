@@ -23,12 +23,6 @@ def validate_project(f):
     return decorated_function
 
 def validate_suite(f):
-    @wraps(f)
-    def decorated_function(project_id, suite_id, *args, **kwargs):
-        project = project_manager.get_project(project_id)
-        suite = next((s for s in project.test_suites if s.id == suite_id), None)
-        if not suite:
-    if project is None:
         return jsonify({'error': 'Project not found'}), 404
     return render_template('project.html', project=project)
 
@@ -43,11 +37,6 @@ def get_all_projects():
     projects = project_manager.get_all_projects()
     return jsonify([p.to_dict() for p in projects])  # Use serialization method instead of __dict__
 
-@app.route('/api/projects', methods=['GET'])
-def get_all_projects():
-    projects = project_manager.get_all_projects()
-    return jsonify([p.__dict__ for p in projects])
-
 @app.route('/api/projects', methods=['POST'])
 def create_project():
     data = request.get_json()
@@ -59,15 +48,6 @@ def create_project():
         return jsonify(new_project.to_dict()), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-@app.route('/api/projects', methods=['POST'])
-def create_project():
-    data = request.get_json()
-    name = data.get('name')
-    if not name:
-        return jsonify({'error': 'Project name is required'}), 400
-
-@app.route('/api/projects/<project_id>/suites', methods=['GET'])
 @validate_project
 def get_suites(project_id):
     project = project_manager.get_project(project_id)
@@ -143,7 +123,6 @@ def stop_test_recording(project_id, suite_id, test_id):
 @app.route('/api/projects/<project_id>/run', methods=['POST'])
 @validate_project
 def run_all_tests_in_project(project_id):
-    test = project_manager.get_test(project_id, suite_id, test_id)
     try:
         results = project_manager.run_all_tests(project_id)
         return jsonify({
