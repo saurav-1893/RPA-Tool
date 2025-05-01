@@ -87,12 +87,12 @@ class RPAApp:
         # TODO: Implement stop recording logic
 
     def add_action(self):
- if self.is_recording:
+        if self.is_recording:
             action = f"Action {len(self.recorded_actions) + 1}"
             self.recorded_actions.append(action)
             self.actions_listbox.insert(tk.END, action)
- print("Add action")
-        # TODO: Implement add new action logic
+        print("Add action")
+        # TODO: Implement add new action logic 
 
     def run_recording(self):
  self.status_var.set("Running...")
