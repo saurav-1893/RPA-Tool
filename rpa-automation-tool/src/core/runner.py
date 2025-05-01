@@ -1,6 +1,6 @@
 from typing import List
-from rpa_automation_tool.src.models.project import Project
-from rpa_automation_tool.src.models.test import Test
+from src.models.project import Project
+from src.models.test import Test
 from rpa_automation_tool.src.models.step import Step
 
 class Runner:
