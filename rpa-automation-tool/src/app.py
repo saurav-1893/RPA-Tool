@@ -73,8 +73,8 @@ def validate_test(f):
 
 def require_json(f):
     @wraps(f)
-    """Ensures request body is JSON."""
     def decorated_function(*args, **kwargs):
+        """Ensures request body is JSON."""
         if not request.is_json:
             return jsonify({'error': 'Request must be JSON'}), 415
         return f(*args, **kwargs)
