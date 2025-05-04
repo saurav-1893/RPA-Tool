@@ -157,7 +157,6 @@ def update_project(project_id):
 @app.route('/api/projects/<project_id>', methods=['DELETE'])
 @validate_project
 @handle_exceptions
-"""Delete a project."""
 def delete_project(project_id):
     """Delete a project."""
     project_manager.delete_project(project_id)
@@ -167,7 +166,6 @@ def delete_project(project_id):
 @app.route('/api/projects/<project_id>/suites', methods=['GET'])
 @validate_project
 @handle_exceptions
-"""Get all test suites for a project."""
 def get_suites(project_id):
     """Get all test suites for a project."""
     project = project_manager.get_project(project_id)
@@ -177,7 +175,6 @@ def get_suites(project_id):
 @validate_project
 @validate_suite
 @handle_exceptions
-"""Get a specific test suite."""
 def get_suite(project_id, suite_id):
     """Get a specific test suite."""
     project = project_manager.get_project(project_id)
@@ -188,7 +185,6 @@ def get_suite(project_id, suite_id):
 @validate_project
 @require_json
 @handle_exceptions
-"""Create a new test suite in a project."""
 def create_suite(project_id):
     """Create a new test suite in a project."""
     data = request.get_json()
@@ -201,7 +197,6 @@ def create_suite(project_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>', methods=['PUT'])
 @validate_project
 @validate_suite
-@require_json
 """Update a test suite."""
 @handle_exceptions
 def update_suite(project_id, suite_id):
@@ -216,7 +211,6 @@ def update_suite(project_id, suite_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>', methods=['DELETE'])
 @validate_project
 @validate_suite
-"""Delete a test suite."""
 @handle_exceptions
 def delete_suite(project_id, suite_id):
     """Delete a test suite."""
@@ -227,7 +221,6 @@ def delete_suite(project_id, suite_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests', methods=['GET'])
 @validate_project
 @validate_suite
-"""Get all tests in a test suite."""
 @handle_exceptions
 def get_tests(project_id, suite_id):
     """Get all tests in a test suite."""
@@ -240,7 +233,6 @@ def get_tests(project_id, suite_id):
 @validate_suite
 @validate_test
 @handle_exceptions
-"""Get a specific test from a suite."""
 def get_test(project_id, suite_id, test_id):
     """Get a specific test from a suite."""
     project = project_manager.get_project(project_id)
@@ -253,7 +245,6 @@ def get_test(project_id, suite_id, test_id):
 @validate_suite
 @require_json
 @handle_exceptions
-"""Create a new test in a test suite."""
 def create_test(project_id, suite_id):
     """Create a new test in a test suite."""
     data = request.get_json()
@@ -268,7 +259,6 @@ def create_test(project_id, suite_id):
 @validate_suite
 @validate_test
 @require_json
-"""Update a test."""
 @handle_exceptions
 def update_test(project_id, suite_id, test_id):
     """Update a test."""
@@ -284,7 +274,6 @@ def update_test(project_id, suite_id, test_id):
 @validate_suite
 @validate_test
 @handle_exceptions
-"""Delete a test."""
 def delete_test(project_id, suite_id, test_id):
     """Delete a test."""
     project_manager.delete_test(project_id, suite_id, test_id)
@@ -362,7 +351,6 @@ def delete_test_step(project_id, suite_id, test_id, step_index):
 @validate_suite
 @validate_test
 @handle_exceptions
-"""Start recording a test."""
 def start_test_recording(project_id, suite_id, test_id):
     """Start recording a test."""
     result = project_manager.start_recording(project_id, suite_id, test_id)
@@ -378,7 +366,6 @@ def start_test_recording(project_id, suite_id, test_id):
 @validate_suite
 @validate_test
 @handle_exceptions
-"""Stop recording a test."""
 def stop_test_recording(project_id, suite_id, test_id):
     """Stop recording a test."""
     result = project_manager.stop_recording(project_id, suite_id, test_id)
@@ -399,7 +386,6 @@ def stop_test_recording(project_id, suite_id, test_id):
 @validate_suite
 @validate_test
 @handle_exceptions
-"""Pause recording a test."""
 def pause_test_recording(project_id, suite_id, test_id):
     """Pause recording a test."""
     result = project_manager.pause_recording(project_id, suite_id, test_id)
@@ -412,7 +398,6 @@ def pause_test_recording(project_id, suite_id, test_id):
 @validate_suite
 @validate_test
 @handle_exceptions
-"""Play a test."""
 def play_test(project_id, suite_id, test_id):
     """Play a test."""
     result = project_manager.play_test(project_id, suite_id, test_id)
@@ -426,7 +411,6 @@ def play_test(project_id, suite_id, test_id):
 @app.route('/api/projects/<project_id>/run', methods=['POST'])
 @validate_project
 @handle_exceptions
-"""Run all tests in a project."""
 def run_all_tests_in_project(project_id):
     """Run all tests in a project."""
     results = project_manager.run_all_tests(project_id)
@@ -439,7 +423,6 @@ def run_all_tests_in_project(project_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>/run', methods=['POST'])
 @validate_project
 @validate_suite
-"""Run all tests in a specific test suite."""
 @handle_exceptions
 def run_suite_tests(project_id, suite_id):
     """Run all tests in a specific test suite."""
