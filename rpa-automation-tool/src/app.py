@@ -436,7 +436,6 @@ def run_suite_tests(project_id, suite_id):
 @validate_project
 @validate_suite
 @validate_test
-"""Run a single test."""
 @handle_exceptions
 def run_single_test(project_id, suite_id, test_id):
     """Run a single test."""
@@ -451,7 +450,6 @@ def run_single_test(project_id, suite_id, test_id):
 @app.route('/api/status', methods=['GET'])
 @handle_exceptions
 def get_status():
-    """Get system status."""
     """Get system status."""
     status = {
         'status': 'operational',

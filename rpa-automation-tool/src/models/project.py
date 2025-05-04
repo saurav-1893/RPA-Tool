@@ -14,7 +14,7 @@ class Project:
             'id': self.id,
             'name': self.name,
             'test_suites': [suite.to_dict() for suite in self.test_suites],
-            'history': self.history
+            'history': self.history,
             'description': self.description  # Include description in dict
         }
 
