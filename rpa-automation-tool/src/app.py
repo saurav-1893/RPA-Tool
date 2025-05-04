@@ -197,7 +197,6 @@ def create_suite(project_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>', methods=['PUT'])
 @validate_project
 @validate_suite
-"""Update a test suite."""
 @handle_exceptions
 def update_suite(project_id, suite_id):
     """Update a test suite."""
