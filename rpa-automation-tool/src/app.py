@@ -1,17 +1,16 @@
 import sys
 from pathlib import Path
-
-# Add project root to Python path
-PROJECT_ROOT = Path(__file__).parent.parent
-sys.path.append(str(PROJECT_ROOT))
-
+from src.ui.app import get_all_projects as ui_get_all_projects
+from src.ui.app import get_project as ui_get_project
 from flask import Flask, jsonify, request, render_template
+from src.ui.app import get_suite as ui_get_suite
 import logging
 from functools import wraps
 import traceback
 from src.utils.project_manager import ProjectManager
 
 app = Flask(__name__)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 app.logger.setLevel(logging.INFO)
@@ -74,6 +73,7 @@ def validate_test(f):
 
 def require_json(f):
     @wraps(f)
+    """Ensures request body is JSON."""
     def decorated_function(*args, **kwargs):
         if not request.is_json:
             return jsonify({'error': 'Request must be JSON'}), 415
@@ -84,38 +84,36 @@ def require_json(f):
 @app.route('/')
 @handle_exceptions
 def main():
-    """Render the main page with all projects."""
+    """Render the main page with all projects using the UI function."""
     projects = project_manager.get_all_projects()
     return render_template('index.html', projects=projects)
 
 @app.route('/project/<project_id>')
 @handle_exceptions
 def project_detail(project_id):
-    """Render a specific project page."""
-    project = project_manager.get_project(project_id)
+    """Render a specific project detail page."""
+    project = ui_get_project(project_id)
     if not project:
         app.logger.warning(f"Project not found for detail page: {project_id}")
-        return render_template('error.html', error="Project not found"), 404
+        return render_template('error.html', error='Project not found'), 404
     return render_template('project.html', project=project)
 
 @app.route('/project/<project_id>/suite/<suite_id>')
 @handle_exceptions
 def suite_detail(project_id, suite_id):
-    """Render a specific test suite page."""
-    project = project_manager.get_project(project_id)
+    """Render a specific test suite detail page."""
+    project = ui_get_project(project_id)
     if not project:
         app.logger.warning(f"Project not found for suite detail page: {project_id}")
         return render_template('error.html', error="Project not found"), 404
-    suite = next((s for s in project.test_suites if s.id == suite_id), None)
-    if not suite:
-        app.logger.warning(f"Test Suite not found: {suite_id} in project {project_id}")
-        return render_template('error.html', error="Test Suite not found"), 404
+    suite = ui_get_suite(project_id, suite_id)
     return render_template('test_suite.html', project=project, suite=suite)
 
 # ================= API Routes =================
 @app.route('/api/projects', methods=['GET'])
 @handle_exceptions
 def get_all_projects():
+    """Get all projects."""
     """Get all projects."""
     projects = project_manager.get_all_projects()
     return jsonify([p.to_dict() for p in projects])
@@ -125,6 +123,7 @@ def get_all_projects():
 @handle_exceptions
 def get_project(project_id):
     """Get a specific project by ID."""
+    """Get a specific project by ID."""
     project = project_manager.get_project(project_id)
     return jsonify(project.to_dict())
 
@@ -133,10 +132,11 @@ def get_project(project_id):
 @handle_exceptions
 def create_project():
     """Create a new project."""
+    """Create a new project."""
     data = request.get_json()
     if not data or 'name' not in data:
         return jsonify({'error': 'Project name is required'}), 400
-    new_project = project_manager.create_project(data['name'])
+    new_project = project_manager.create_project(data['name'], data.get('description'))
     app.logger.info(f"Created new project: {new_project.id}")
     return jsonify(new_project.to_dict()), 201
 
@@ -145,6 +145,7 @@ def create_project():
 @require_json
 @handle_exceptions
 def update_project(project_id):
+    """Update an existing project."""
     """Update an existing project."""
     data = request.get_json()
     if not data or 'name' not in data:
@@ -156,6 +157,7 @@ def update_project(project_id):
 @app.route('/api/projects/<project_id>', methods=['DELETE'])
 @validate_project
 @handle_exceptions
+"""Delete a project."""
 def delete_project(project_id):
     """Delete a project."""
     project_manager.delete_project(project_id)
@@ -165,6 +167,7 @@ def delete_project(project_id):
 @app.route('/api/projects/<project_id>/suites', methods=['GET'])
 @validate_project
 @handle_exceptions
+"""Get all test suites for a project."""
 def get_suites(project_id):
     """Get all test suites for a project."""
     project = project_manager.get_project(project_id)
@@ -174,6 +177,7 @@ def get_suites(project_id):
 @validate_project
 @validate_suite
 @handle_exceptions
+"""Get a specific test suite."""
 def get_suite(project_id, suite_id):
     """Get a specific test suite."""
     project = project_manager.get_project(project_id)
@@ -184,6 +188,7 @@ def get_suite(project_id, suite_id):
 @validate_project
 @require_json
 @handle_exceptions
+"""Create a new test suite in a project."""
 def create_suite(project_id):
     """Create a new test suite in a project."""
     data = request.get_json()
@@ -197,6 +202,7 @@ def create_suite(project_id):
 @validate_project
 @validate_suite
 @require_json
+"""Update a test suite."""
 @handle_exceptions
 def update_suite(project_id, suite_id):
     """Update a test suite."""
@@ -210,6 +216,7 @@ def update_suite(project_id, suite_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>', methods=['DELETE'])
 @validate_project
 @validate_suite
+"""Delete a test suite."""
 @handle_exceptions
 def delete_suite(project_id, suite_id):
     """Delete a test suite."""
@@ -220,6 +227,7 @@ def delete_suite(project_id, suite_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests', methods=['GET'])
 @validate_project
 @validate_suite
+"""Get all tests in a test suite."""
 @handle_exceptions
 def get_tests(project_id, suite_id):
     """Get all tests in a test suite."""
@@ -232,6 +240,7 @@ def get_tests(project_id, suite_id):
 @validate_suite
 @validate_test
 @handle_exceptions
+"""Get a specific test from a suite."""
 def get_test(project_id, suite_id, test_id):
     """Get a specific test from a suite."""
     project = project_manager.get_project(project_id)
@@ -244,6 +253,7 @@ def get_test(project_id, suite_id, test_id):
 @validate_suite
 @require_json
 @handle_exceptions
+"""Create a new test in a test suite."""
 def create_test(project_id, suite_id):
     """Create a new test in a test suite."""
     data = request.get_json()
@@ -258,6 +268,7 @@ def create_test(project_id, suite_id):
 @validate_suite
 @validate_test
 @require_json
+"""Update a test."""
 @handle_exceptions
 def update_test(project_id, suite_id, test_id):
     """Update a test."""
@@ -273,17 +284,85 @@ def update_test(project_id, suite_id, test_id):
 @validate_suite
 @validate_test
 @handle_exceptions
+"""Delete a test."""
 def delete_test(project_id, suite_id, test_id):
     """Delete a test."""
     project_manager.delete_test(project_id, suite_id, test_id)
     app.logger.info(f"Deleted test {test_id}")
     return jsonify({'message': 'Test deleted successfully'})
 
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/steps', methods=['GET'])
+@validate_project
+@validate_suite
+@validate_test
+@handle_exceptions
+def get_test_steps(project_id, suite_id, test_id):
+    """Get all steps for a specific test."""
+    project = project_manager.get_project(project_id)
+    suite = next((s for s in project.test_suites if s.id == suite_id), None)
+    test = next((t for t in suite.tests if t.id == test_id), None)
+    return jsonify(test.steps)
+
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/steps', methods=['POST'])
+@validate_project
+@validate_suite
+@validate_test
+@require_json
+@handle_exceptions
+def add_test_step(project_id, suite_id, test_id):
+    """Add a new step to a test."""
+    data = request.get_json()
+    if not data or 'action' not in data or 'target' not in data:
+        return jsonify({'error': 'Action and target are required for a step'}), 400
+
+    project = project_manager.get_project(project_id)
+    suite = next((s for s in project.test_suites if s.id == suite_id), None)
+    test = next((t for t in suite.tests if t.id == test_id), None)
+
+    step = project_manager.add_step_to_test(project_id, suite_id, test_id, data)
+    app.logger.info(f"Added step to test {test_id}")
+    return jsonify(step), 201
+
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/step/<int:step_index>', methods=['PUT'])
+@validate_project
+@validate_suite
+@validate_test
+@require_json
+@handle_exceptions
+def update_test_step(project_id, suite_id, test_id, step_index):
+    """Update an existing step in a test."""
+    data = request.get_json()
+    if not data or 'action' not in data or 'target' not in data:
+        return jsonify({'error': 'Action and target are required for a step'}), 400
+
+    project = project_manager.get_project(project_id)
+    suite = next((s for s in project.test_suites if s.id == suite_id), None)
+    test = next((t for t in suite.tests if t.id == test_id), None)
+
+    try:
+        updated_step = project_manager.update_step_in_test(project_id, suite_id, test_id, step_index, data)
+        app.logger.info(f"Updated step {step_index} in test {test_id}")
+        return jsonify(updated_step)
+    except IndexError:
+        return jsonify({'error': 'Step index out of bounds'}), 400
+
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/step/<int:step_index>', methods=['DELETE'])
+@validate_project
+@validate_suite
+@validate_test
+@handle_exceptions
+def delete_test_step(project_id, suite_id, test_id, step_index):
+    """Delete a step from a test."""
+    project_manager.delete_step_from_test(project_id, suite_id, test_id, step_index)
+    app.logger.info(f"Deleted step {step_index} from test {test_id}")
+    return jsonify({'message': 'Step deleted successfully'})
+
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/record/start', methods=['POST'])
 @validate_project
 @validate_suite
 @validate_test
 @handle_exceptions
+"""Start recording a test."""
 def start_test_recording(project_id, suite_id, test_id):
     """Start recording a test."""
     result = project_manager.start_recording(project_id, suite_id, test_id)
@@ -299,6 +378,7 @@ def start_test_recording(project_id, suite_id, test_id):
 @validate_suite
 @validate_test
 @handle_exceptions
+"""Stop recording a test."""
 def stop_test_recording(project_id, suite_id, test_id):
     """Stop recording a test."""
     result = project_manager.stop_recording(project_id, suite_id, test_id)
@@ -314,11 +394,25 @@ def stop_test_recording(project_id, suite_id, test_id):
         app.logger.warning(f"No recording in progress for test {test_id}")
         return jsonify({'error': 'No recording in progress for this test'}), 409
 
+@app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/record/pause', methods=['POST'])
+@validate_project
+@validate_suite
+@validate_test
+@handle_exceptions
+"""Pause recording a test."""
+def pause_test_recording(project_id, suite_id, test_id):
+    """Pause recording a test."""
+    result = project_manager.pause_recording(project_id, suite_id, test_id)
+    app.logger.info(f"Paused recording for test {test_id}")
+    return jsonify({'message': 'Recording paused', 'test_id': test_id})
+
+
 @app.route('/api/projects/<project_id>/suites/<suite_id>/tests/<test_id>/play', methods=['POST'])
 @validate_project
 @validate_suite
 @validate_test
 @handle_exceptions
+"""Play a test."""
 def play_test(project_id, suite_id, test_id):
     """Play a test."""
     result = project_manager.play_test(project_id, suite_id, test_id)
@@ -332,6 +426,7 @@ def play_test(project_id, suite_id, test_id):
 @app.route('/api/projects/<project_id>/run', methods=['POST'])
 @validate_project
 @handle_exceptions
+"""Run all tests in a project."""
 def run_all_tests_in_project(project_id):
     """Run all tests in a project."""
     results = project_manager.run_all_tests(project_id)
@@ -344,6 +439,7 @@ def run_all_tests_in_project(project_id):
 @app.route('/api/projects/<project_id>/suites/<suite_id>/run', methods=['POST'])
 @validate_project
 @validate_suite
+"""Run all tests in a specific test suite."""
 @handle_exceptions
 def run_suite_tests(project_id, suite_id):
     """Run all tests in a specific test suite."""
@@ -358,6 +454,7 @@ def run_suite_tests(project_id, suite_id):
 @validate_project
 @validate_suite
 @validate_test
+"""Run a single test."""
 @handle_exceptions
 def run_single_test(project_id, suite_id, test_id):
     """Run a single test."""
@@ -372,6 +469,7 @@ def run_single_test(project_id, suite_id, test_id):
 @app.route('/api/status', methods=['GET'])
 @handle_exceptions
 def get_status():
+    """Get system status."""
     """Get system status."""
     status = {
         'status': 'operational',

@@ -2,39 +2,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Management</title>
-    <link rel="stylesheet" href="../static/style.css">
-    <script src="../static/script.js" defer></script>
+    <title>{{ project.name }} - Project Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body onload="projectManager.loadProjectDetail()">
-    <h1>RPA Tool</h1>
-    <a href="/">Back to Projects</a>
+<body>
+    <h1>{{ project.name }}</h1>
 
-    <h2 id="project-name"></h2>
+    <h2>Project Details</h2>
+    <form id="updateProjectForm">
+        <label for="projectDescription">Description:</label><br>
+        <textarea id="projectDescription" name="projectDescription">{{ project.description }}</textarea><br>
+        <button type="button" onclick="updateProject()">Update Project</button>
+    </form>
 
-    <section id="add-test-suite-section">
-        <h2>Add Test Suite</h2>
-        <form id="add-test-suite-form">
-            <label for="test-suite-name">Test Suite Name:</label>
-            <input type="text" id="test-suite-name" name="test-suite-name" required>
-            <button type="submit">Add Test Suite</button>
-        </form>
-    </section>
+    <h2>Test Suites</h2>
+    <ul id="testSuitesList">
+        {% for suite in project.test_suites %}
+        <li>
+            <a href="/project/{{ project.id }}/suite/{{ suite.id }}">{{ suite.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
 
-    <section id="test-suites-list-section">
-        <h2>Test Suites</h2>
-        <p id="no-test-suites-message" style="display: none;">No test suites found for this project.</p>
-        <div id="testSuiteList"></div>
-        <ul id="test-suites-list">
-        </ul>
-    </section>
+    <h2>Create New Test Suite</h2>
+    <form id="createTestSuiteForm">
+        <label for="suiteName">Name:</label><br>
+        <input type="text" id="suiteName" name="suiteName" required><br>
+        <label for="suiteDescription">Description:</label><br>
+        <textarea id="suiteDescription" name="suiteDescription"></textarea><br>
+        <button type="button" onclick="createTestSuite()">Create Test Suite</button>
+    </form>
 
-    <section id="run-all-tests-section">
-        <button id="run-all-tests-button">Run All Tests</button>
-    </section>
-
-    <script>\n        const projectManager = new ProjectManager('project');\n    </script>
-    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        const projectId = "{{ project.id }}";
+    </script>
 </body>
 </html>

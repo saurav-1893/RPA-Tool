@@ -3,7 +3,7 @@ from .test import Test
 
 
 class TestSuite:
-    def __init__(self, name, id=None):
+    def __init__(self, name, description="", id=None):
         if id is None:
             self.id = str(uuid.uuid4())
         else:
@@ -11,8 +11,8 @@ class TestSuite:
         self.name = name
         self.tests = []
 
-    def to_dict(self):
-        return {"id": self.id, "name": self.name, "tests": [test.to_dict() if hasattr(test, 'to_dict') else test.name for test in self.tests]}
+    def to_dict(self):  # Added description to to_dict
+        return {"id": self.id, "name": self.name, "description": self.description, "tests": [test.to_dict() if hasattr(test, 'to_dict') else test.name for test in self.tests]}
 
     @classmethod
     def from_dict(cls, data):

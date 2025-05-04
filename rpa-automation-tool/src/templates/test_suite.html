@@ -2,40 +2,415 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Suite Management</title>
-    <link rel="stylesheet" href="../static/style.css">
-    <script src="../static/script.js" defer></script>
+    <title>{{ suite.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1 id="test-suite-name">Test Suite Name</h1>
+    <h1>{{ suite.name }}</h1>
 
-        <div class="test-management">
-            <div id="tests-container">
-                <h2>Tests</h2>
-                <div id="no-tests-message" style="display: none;">No tests found in this suite.</div>
-                <table id="test-table">
-                    <thead>
-                        <th>Name</th>
+    <form id="update-suite-form">
+        <div>
+            <label for="suite-description">Description:</label>
+            <textarea id="suite-description" name="suite_description">{{ suite.description }}</textarea>
+        </div>
+        <button type="submit">Update Suite</button>
+    </form>
+
+    <h2>Tests in this Suite</h2>
+    <table id="test-list">
+        {% for test in suite.tests %}
+        <tr data-test-id="{{ test.id }}">
+            <td>{{ test.name }}</td>
+            <td><button class="show-steps-button">Show Steps</button></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- Modal for Test Steps -->
+    <div id="steps-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Test Steps</h2>
+            <table id="steps-table">
+                <thead>
+                    <tr>
                         <th>Action</th>
+                        <th contenteditable="false">Target</th>
+                        <th contenteditable="false">Value</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody id="steps-table-body">
+                    <!-- Steps will be populated here by JavaScript -->
+                </tbody>
             </table>
-        </div>
 
-        <div id="create-test-section">
-            <h2>Create New Test</h2>
-            <form id="create-test-form">
-                <label for="test-name">Test Name:</label>
-                <input type="text" id="test-name" name="test-name" required>
-                <button type="submit">Create Test</button>
+            <h3>Add New Step</h3>
+            <form id="add-step-form">
+                <input type="text" class="step-action" placeholder="Action" required>
+                <input type="text" class="step-target" placeholder="Target" required>
+                <input type="text" class="step-value" placeholder="Value">
+                <button type="submit">Add Step</button>
             </form>
         </div>
-
- <button id="start-recording-button">Start Recording</button>
- <button id="run-all-tests-button">Run All Tests</button>
     </div>
+
+    <h2>Create New Test</h2>
+    <form id="create-test-form">
+        <div>
+            <label for="test-name">Test Name:</label>
+            <input type="text" id="test-name" name="test_name" required>
+        </div>
+        <button type="submit">Create Test</button>
+    </form>
+
+    <button id="pause-recording">Pause Recording</button>
+    <button id="resume-recording" style="display:none;">Resume Recording</button>
+    <button id="play-suite-button">Play All Tests in Suite</button>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const showStepsButtons = document.querySelectorAll('.show-steps-button');
+            const stepsModal = document.getElementById('steps-modal');
+            const closeModalButton = document.querySelector('#steps-modal .close-button');
+            const stepsTableBody = document.getElementById('steps-table-body');
+            const addStepForm = document.getElementById('add-step-form');
+            const errorMessageDiv = document.getElementById('error-message');
+            const pauseRecordingButton = document.getElementById('pause-recording');
+            const resumeRecordingButton = document.getElementById('resume-recording');
+            const recordButton = document.getElementById('record-button'); // Assuming you have a record button with this ID
+
+            let currentTestId = null; // To keep track of which test's steps are being viewed
+
+            // Function to get project and suite IDs from the URL
+            function getIdsFromUrl() {
+                const pathSegments = window.location.pathname.split('/');
+                const projectId = pathSegments[2];
+                const suiteId = pathSegments[4];
+                return { projectId, suiteId };
+            }
+
+            // Function to display error messages
+            function displayError(message) {
+                if (errorMessageDiv) {
+                    errorMessageDiv.textContent = `Error: ${message}`;
+                    errorMessageDiv.style.display = 'block';
+                } else {
+                    console.error('Error:', message);
+                }
+            }
+
+            // Function to clear error messages
+            function clearError() {
+                if (errorMessageDiv) {
+                    errorMessageDiv.textContent = '';
+                    errorMessageDiv.style.display = 'none';
+                }
+            }
+
+            // Function to render steps in the modal table
+            function renderSteps(steps) {
+                stepsTableBody.innerHTML = ''; // Clear existing steps
+                steps.forEach((step, index) => {
+                    const row = stepsTableBody.insertRow();
+                    row.dataset.stepIndex = index; // Store the index for deletion/editing
+                    row.innerHTML = `
+                        <td contenteditable="false" class="step-action">${step.action || ''}</td>
+                        <td contenteditable="false" class="step-target">${step.target || ''}</td>
+                        <td contenteditable="false" class="step-value">${step.value || ''}</td>
+                        <td>
+                            <button class="edit-step-button">Edit</button>
+                            <button class="delete-step-button">Delete</button>
+                            <button class="save-step-button" style="display:none;">Save</button>
+                        </td>
+                    `;
+                });
+            }
+
+            // Event listener for showing steps
+            showStepsButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    clearError();
+                    const testId = this.parentElement.dataset.testId;
+                    const { projectId, suiteId } = getIdsFromUrl();
+                    currentTestId = testId; // Set current test ID
+
+                    try {
+                        const response = await fetch(`/api/projects/${projectId}/suites/${suiteId}/tests/${testId}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            renderSteps(data.steps || []); // Render steps, default to empty array if none
+                            stepsModal.style.display = 'block'; // Show the modal
+                        } else {
+                            displayError(data.error || 'Failed to fetch test steps.');
+                        }
+                    } catch (error) {
+                        displayError('An error occurred while fetching test steps.');
+                        console.error('Error fetching steps:', error);
+                    }
+                });
+            });
+
+            // Event listener for closing the modal
+            closeModalButton.addEventListener('click', function() {
+                stepsModal.style.display = 'none';
+                stepsTableBody.innerHTML = ''; // Clear steps when modal is closed
+                currentTestId = null; // Reset current test ID
+            });
+
+            // Close the modal if the user clicks outside of it
+            window.addEventListener('click', function(event) {
+                if (event.target === stepsModal) {
+                    stepsModal.style.display = 'none';
+                    stepsTableBody.innerHTML = ''; // Clear steps when modal is closed
+                    currentTestId = null; // Reset current test ID
+                }
+            });
+
+            // Add step form submission
+            addStepForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                clearError();
+
+                const action = this.querySelector('.step-action').value;
+                const target = this.querySelector('.step-target').value;
+                const value = this.querySelector('.step-value').value;
+
+                if (!currentTestId) {
+                    displayError('No test selected to add step.');
+                    return;
+                }
+
+                const { projectId, suiteId } = getIdsFromUrl();
+
+                try {
+                    const response = await fetch(`/api/projects/${projectId}/suites/${suiteId}/tests/${currentTestId}/steps`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ action, target, value }),
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        // Assuming the API returns the updated list of steps or the new step
+                        // For simplicity, let's re-fetch all steps after adding
+                        const fetchResponse = await fetch(`/api/projects/${projectId}/suites/${suiteId}/tests/${currentTestId}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        });
+                        const fetchData = await fetchResponse.json();
+                        if (fetchResponse.ok) {
+                            renderSteps(fetchData.steps || []);
+                            this.reset(); // Reset the form
+                        } else {
+                            displayError(fetchData.error || 'Failed to re-fetch test steps after adding.');
+                        }
+                    } else {
+                        displayError(data.error || 'Failed to add test step.');
+                    }
+                } catch (error) {
+                    displayError('An error occurred while adding test step.');
+                    console.error('Error adding step:', error);
+                }
+            });
+
+            // Event listeners for edit and delete will be added to the table body
+            stepsTableBody.addEventListener('click', async function(event) {
+                const target = event.target;
+                const row = target.closest('tr');
+                if (!row) return; // Click wasn't on a row
+
+                const stepIndex = row.dataset.stepIndex;
+                const { projectId, suiteId } = getIdsFromUrl();
+
+                if (target.classList.contains('delete-step-button')) {
+                    clearError();
+                    if (!currentTestId) {
+                        displayError('No test selected to delete step from.');
+                        return;
+                    }
+
+                    if (confirm('Are you sure you want to delete this step?')) {
+                        try {
+                            const response = await fetch(`/api/projects/${projectId}/suites/${suiteId}/tests/${currentTestId}/steps/${stepIndex}`, {
+                                method: 'DELETE',
+                            });
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                row.remove(); // Remove the row from the table
+                                // Re-index the remaining rows' data-step-index attributes
+                                stepsTableBody.querySelectorAll('tr').forEach((remainingRow, newIndex) => {
+                                    remainingRow.dataset.stepIndex = newIndex;
+                                });
+                                console.log('Step deleted successfully:', data.message);
+                            } else {
+                                displayError(data.error || 'Failed to delete test step.');
+                            }
+                        } catch (error) {
+                            displayError('An error occurred while deleting test step.');
+                            console.error('Error deleting step:', error);
+                        }
+                    }
+                } else if (target.classList.contains('edit-step-button')) {
+                    const actionCell = row.querySelector('.step-action');
+                    const targetCell = row.querySelector('.step-target');
+                    const valueCell = row.querySelector('.step-value');
+                    const saveButton = row.querySelector('.save-step-button');
+                    const editButton = row.querySelector('.edit-step-button');
+
+                    // Make cells editable
+                    actionCell.contentEditable = true;
+                    targetCell.contentEditable = true;
+                    valueCell.contentEditable = true;
+
+                    // Show Save button, hide Edit button
+                    saveButton.style.display = 'inline-block';
+                    editButton.style.display = 'none';
+
+                    // Focus on the first editable cell
+                    actionCell.focus();
+
+                } else if (target.classList.contains('save-step-button')) {
+                    clearError();
+                    const actionCell = row.querySelector('.step-action');
+                    const targetCell = row.querySelector('.step-target');
+                    const valueCell = row.querySelector('.step-value');
+                    const saveButton = row.querySelector('.save-step-button');
+                    const editButton = row.querySelector('.edit-step-button');
+
+                    const updatedAction = actionCell.textContent;
+                    const updatedTarget = targetCell.textContent;
+                    const updatedValue = valueCell.textContent;
+
+                    if (!currentTestId) {
+                        displayError('No test selected to save step to.');
+                        return;
+                    }
+
+                    try {
+                         const response = await fetch(`/api/projects/${projectId}/suites/${suiteId}/tests/${currentTestId}/steps/${stepIndex}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ action: updatedAction, target: updatedTarget, value: updatedValue }),
+                        });
+                        const data = await response.json();
+
+                        if (response.ok) {
+                             // Make cells not editable
+                            actionCell.contentEditable = false;
+                            targetCell.contentEditable = false;
+                            valueCell.contentEditable = false;
+
+                            // Show Edit button, hide Save button
+                            saveButton.style.display = 'none';
+                            editButton.style.display = 'inline-block';
+                            console.log('Step updated successfully:', data);
+                        } else {
+                            displayError(data.error || 'Failed to update test step.');
+                        }
+                    } catch (error) {
+                         displayError('An error occurred while updating test step.');
+                         console.error('Error updating step:', error);
+                    }
+                }
+            });
+
+            // Event listener for the "Pause Recording" button
+            pauseRecordingButton.addEventListener('click', async function(event) {
+                event.preventDefault();
+                clearError();
+
+                if (!currentTestId) {
+                    displayError('No test selected to pause recording for.');
+                    return;
+                }
+
+                const { projectId, suiteId } = getIdsFromUrl();
+
+                try {
+                    const response = await fetch(`/api/projects/${projectId}/suites/${suiteId}/tests/${currentTestId}/record/pause`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        pauseRecordingButton.style.display = 'none';
+                        resumeRecordingButton.style.display = 'inline-block';
+                        if (recordButton) recordButton.textContent = 'Stop Recording'; // Update record button text
+                        console.log('Recording paused:', data.message);
+                    } else {
+                        displayError(data.error || 'Failed to pause recording.');
+                    }
+                } catch (error) {
+                    displayError('An error occurred while pausing recording.');
+                    console.error('Error pausing recording:', error);
+                }
+            });
+
+            // Event listener for the "Resume Recording" button
+            resumeRecordingButton.addEventListener('click', async function(event) {
+                event.preventDefault();
+                clearError();
+
+                if (!currentTestId) {
+                    displayError('No test selected to resume recording for.');
+                    return;
+                }
+
+                const { projectId, suiteId } = getIdsFromUrl();
+
+                // Resume recording uses the /record/start endpoint
+                // The backend should handle resuming if a recording is paused for this test
+                // Need to add a parameter to start_recording endpoint to inform if it is resume?
+                // Assuming the backend logic handles resuming based on test state (is_recording and is_paused)
+
+                // We'll need to call the /record/start endpoint again.
+                // The logic for handling resume based on test state should be in the backend.
+            });
+
+             // Event listener for the "Play All Tests in Suite" button
+             document.getElementById('play-suite-button').addEventListener('click', async function() {
+                clearError();
+                const { projectId, suiteId } = getIdsFromUrl();
+
+                try {
+                    const response = await fetch(`/api/projects/${projectId}/suites/${suiteId}/run`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        console.log('Suite execution started:', data.message);
+                        // Optionally display results or a success message
+                    } else {
+                         displayError(data.error || 'Failed to start suite execution.');
+                    }
+                } catch (error) {
+                    displayError('An error occurred while starting suite execution.');
+                    console.error('Error starting suite execution:', error);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

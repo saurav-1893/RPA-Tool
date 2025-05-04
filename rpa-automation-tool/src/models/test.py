@@ -8,7 +8,6 @@ class Test:
         self.steps = steps if steps is not None else []
         self.result = result
         self.is_recording = False
-        self.recorder = Recorder()
 
     def record(self, steps=None):
         self.is_recording = True
