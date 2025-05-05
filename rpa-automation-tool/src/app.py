@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 from src.ui.app import get_all_projects as ui_get_all_projects
-from src.ui.app import get_project as ui_get_project
+from src.ui.app import get_projects as ui_get_projects
 from flask import Flask, jsonify, request, render_template
 from src.ui.app import get_suite as ui_get_suite
 import logging
@@ -92,7 +92,7 @@ def main():
 @handle_exceptions
 def project_detail(project_id):
     """Render a specific project detail page."""
-    project = ui_get_project(project_id)
+    project = ui_get_projects(project_id)
     if not project:
         app.logger.warning(f"Project not found for detail page: {project_id}")
         return render_template('error.html', error='Project not found'), 404
